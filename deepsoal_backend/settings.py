@@ -41,10 +41,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 ]
-
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # این خط رو اضافه کن
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -134,7 +134,7 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
-    "https://deepsoal.onrender.com/"
+    "https://deepsoal.onrender.com"
 ]
 
 # تنظیمات Deployment
@@ -152,7 +152,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # اگر روی رندر هستیم
-if 'RENDER' in os.environ:
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, 'static'),
-]
+#if 'RENDER' in os.environ:
+#    STATICFILES_DIRS = [
+#        os.path.join(BASE_DIR, 'static'),
+#]

@@ -140,8 +140,18 @@ CORS_ALLOWED_ORIGINS = [
 import os
 if 'RENDER' in os.environ:
     DEBUG = False
-    ALLOWED_HOSTS = ['https://deepsoal.onrender.com/']
+    ALLOWED_HOSTS = ['.onrender.com']
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 else:
     DEBUG = True
     ALLOWED_HOSTS = []
+
+# به انتهای settings.py اضافه کن
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# اگر روی رندر هستیم
+if 'RENDER' in os.environ:
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'static'),
+]

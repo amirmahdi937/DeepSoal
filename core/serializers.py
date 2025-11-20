@@ -22,7 +22,7 @@ class AnswerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_user_has_liked(self, obj):
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            return user in obj.likes.all()
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return request.user in obj.likes.all()
         return False

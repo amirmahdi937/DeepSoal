@@ -41,9 +41,6 @@ INSTALLED_APPS = [
     'core',
     'rest_framework',
     'corsheaders',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
 ]
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -168,7 +165,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 SITE_ID = 1
-
+'''
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.backends.EmailBackend',
@@ -184,3 +181,4 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 # برای توسعه
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+'''

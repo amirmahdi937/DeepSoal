@@ -1,4 +1,4 @@
-const API_BASE = 'https://deepsoal.onrender.com';
+const API_BASE = '';
 
 // المنت‌های اصلی DOM
 const elements = {

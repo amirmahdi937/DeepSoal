@@ -18,84 +18,115 @@
         </header>
 
         <main>
-            <!-- وضعیت احراز هویت -->
-            <div id="auth-status" class="auth-status">
-                <!-- توسط جاوااسکریپت پر می‌شود -->
-            </div>
-
-            <!-- فرم‌های ثبت‌نام و لاگین -->
-            <div id="auth-forms" style="display: none;">
-                <!-- فرم لاگین -->
-                <form id="login-form" class="auth-form">
-                    <h3 style="text-align: center; margin-bottom: 20px; color: var(--primary);">ورود به حساب کاربری</h3>
-                    <div class="form-group">
-                        <label for="login-username">نام کاربری یا ایمیل</label>
-                        <input type="text" id="login-username" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">رمز عبور</label>
-                        <input type="password" id="login-password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn" style="width: 100%;">ورود</button>
-                    <div style="text-align: center; margin-top: 16px;">
-                        <button type="button" class="btn btn-secondary" onclick="toggleAuthForms(false)">حساب کاربری ندارید؟ ثبت‌نام</button>
-                    </div>
-                </form>
-
-                <!-- فرم ثبت‌نام -->
-                <form id="register-form" class="auth-form">
-                    <h3 style="text-align: center; margin-bottom: 20px; color: var(--primary);">ایجاد حساب کاربری</h3>
-                    <div class="form-group">
-                        <label for="register-username">نام کاربری</label>
-                        <input type="text" id="register-username" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-email">ایمیل</label>
-                        <input type="email" id="register-email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-password1">رمز عبور</label>
-                        <input type="password" id="register-password1" name="password1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-password2">تکرار رمز عبور</label>
-                        <input type="password" id="register-password2" name="password2" required>
-                    </div>
-                    <button type="submit" class="btn" style="width: 100%;">ثبت‌نام</button>
-                    <div style="text-align: center; margin-top: 16px;">
-                        <button type="button" class="btn btn-secondary" onclick="toggleAuthForms(true)">قبلاً ثبت‌نام کرده‌اید؟ ورود</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- سوال فعال -->
-            <section id="question-container">
-                <div style="text-align: center; padding: 40px; color: var(--gray);">
+            <!-- نوار آمار -->
+            <section id="stats-container">
+                <div style="text-align: center; padding: 20px; color: var(--gray);">
                     <div style="display: inline-block; animation: pulse 1.5s infinite;">⏳</div>
-                    <div>در حال بارگذاری سوال...</div>
+                    <div>در حال بارگذاری آمار...</div>
                 </div>
             </section>
 
-            <!-- فرم ارسال پاسخ -->
-            <form id="answer-form" class="answer-form" style="display: none;">
-                <h3 style="margin-bottom: 16px; color: var(--primary);">پاسخ شما</h3>
-                <div class="form-group">
-                    <textarea 
-                        id="answer-text" 
-                        placeholder="نظرات و پاسخ خود را اینجا بنویسید..." 
-                        required
-                    ></textarea>
-                </div>
-                <button type="submit" class="btn">ارسال پاسخ</button>
-            </form>
+            <!-- ناوبری اصلی -->
+            <nav id="navigation" class="auth-buttons" style="margin-bottom: 30px; justify-content: center;">
+                <button onclick="showView('home')" class="btn">
+                    🏠 صفحه اصلی
+                </button>
+                <button onclick="showView('search')" class="btn btn-secondary">
+                    🔍 جستجو
+                </button>
+                <button onclick="showView('all-answers')" class="btn btn-secondary">
+                    📚 همه پاسخ‌ها
+                </button>
+            </nav>
 
-            <!-- لیست پاسخ‌ها -->
-            <section class="answers-list">
-                <h3 style="margin-bottom: 16px; color: var(--primary);">پاسخ‌ها</h3>
-                <div id="answers-container">
-                    <div style="text-align: center; padding: 20px; color: var(--gray);">
+            <!-- بخش اصلی - صفحه اصلی -->
+            <section id="home-view">
+                <!-- سوال فعال -->
+                <section id="question-container">
+                    <div style="text-align: center; padding: 40px; color: var(--gray);">
                         <div style="display: inline-block; animation: pulse 1.5s infinite;">⏳</div>
-                        <div>در حال بارگذاری پاسخ‌ها...</div>
+                        <div>در حال بارگذاری سوال...</div>
+                    </div>
+                </section>
+
+                <!-- فرم ارسال پاسخ -->
+                <form id="answer-form" class="answer-form">
+                    <h3 style="margin-bottom: 16px; color: var(--primary);">✍️ پاسخ شما</h3>
+                    
+                    <div class="form-group">
+                        <label for="author-name">📛 نام شما (اختیاری)</label>
+                        <input 
+                            type="text" 
+                            id="author-name" 
+                            placeholder="نام خود را وارد کنید (در صورت عدم وارد کردن، 'ناشناس' نمایش داده می‌شود)"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="answer-text">💭 پاسخ شما</label>
+                        <textarea 
+                            id="answer-text" 
+                            placeholder="نظرات و پاسخ خود را اینجا بنویسید..." 
+                            required
+                        ></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        📤 ارسال پاسخ
+                    </button>
+                </form>
+
+                <!-- لیست پاسخ‌ها -->
+                <section class="answers-list">
+                    <h3 style="margin-bottom: 16px; color: var(--primary);">💬 پاسخ‌ها</h3>
+                    <div id="answers-container">
+                        <div style="text-align: center; padding: 20px; color: var(--gray);">
+                            <div style="display: inline-block; animation: pulse 1.5s infinite;">⏳</div>
+                            <div>در حال بارگذاری پاسخ‌ها...</div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- بخش جستجو -->
+            <section id="search-view" style="display: none;">
+                <div class="search-panel">
+                    <div class="search-header">
+                        <h3 style="color: var(--primary); margin-bottom: 0;">🔍 جستجو در پاسخ‌ها</h3>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            placeholder="عبارت مورد نظر برای جستجو را وارد کنید..."
+                            style="margin-bottom: 0;"
+                        >
+                    </div>
+                    
+                    <button onclick="handleSearch()" class="btn" style="width: 100%; margin-top: 15px;">
+                        🔎 اجرای جستجو
+                    </button>
+                </div>
+
+                <div id="search-results">
+                    <div style="text-align: center; padding: 40px; color: var(--gray);">
+                        <div>🔍 برای دیدن نتایج جستجو، عبارت مورد نظر را وارد کنید.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- بخش همه پاسخ‌ها -->
+            <section id="all-answers-view" style="display: none;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h3 style="color: var(--primary); margin-bottom: 10px;">📚 همه پاسخ‌ها</h3>
+                    <p style="color: var(--gray);">نمایش تمام پاسخ‌های ثبت شده در سیستم</p>
+                </div>
+
+                <div id="all-answers-container">
+                    <div style="text-align: center; padding: 40px; color: var(--gray);">
+                        <div style="display: inline-block; animation: pulse 1.5s infinite;">⏳</div>
+                        <div>در حال بارگذاری همه پاسخ‌ها...</div>
                     </div>
                 </div>
             </section>
@@ -112,5 +143,173 @@
     </div>
 
     <script src="{% static 'core/script.js' %}"></script>
+
+    <script>
+        // توابع مدیریت ناوبری
+        function showView(viewName) {
+            // مخفی کردن همه بخش‌ها
+            const sections = ['home', 'search', 'all-answers'];
+            sections.forEach(section => {
+                const element = document.getElementById(`${section}-view`);
+                if (element) element.style.display = 'none';
+            });
+            
+            // نمایش بخش انتخاب شده
+            const currentSection = document.getElementById(`${viewName}-view`);
+            if (currentSection) currentSection.style.display = 'block';
+            
+            // آپدیت دکمه‌های ناوبری
+            updateNavigation(viewName);
+            
+            // بارگذاری محتوای خاص هر بخش
+            if (viewName === 'all-answers') {
+                loadAllAnswers();
+            }
+        }
+
+        function updateNavigation(currentView) {
+            const buttons = document.querySelectorAll('#navigation button');
+            buttons.forEach(btn => {
+                if (btn.textContent.includes('صفحه اصلی') && currentView === 'home') {
+                    btn.className = 'btn';
+                } else if (btn.textContent.includes('جستجو') && currentView === 'search') {
+                    btn.className = 'btn';
+                } else if (btn.textContent.includes('همه پاسخ‌ها') && currentView === 'all-answers') {
+                    btn.className = 'btn';
+                } else {
+                    btn.className = 'btn btn-secondary';
+                }
+            });
+        }
+
+        // بارگذاری همه پاسخ‌ها
+        async function loadAllAnswers() {
+            const container = document.getElementById('all-answers-container');
+            if (!container) return;
+
+            try {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--gray);">
+                        <div style="display: inline-block; animation: pulse 1.5s infinite;">⏳</div>
+                        <div>در حال بارگذاری همه پاسخ‌ها...</div>
+                    </div>
+                `;
+
+                const response = await fetch('https://deepsoal.onrender.com/api/all-answers/');
+                
+                if (response.ok) {
+                    const answers = await response.json();
+                    renderAllAnswers(answers, container);
+                } else {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: var(--error);">
+                            <div>❌ خطا در بارگذاری پاسخ‌ها</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading all answers:', error);
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--error);">
+                        <div>❌ خطا در ارتباط با سرور</div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderAllAnswers(answers, container) {
+            container.innerHTML = '';
+            
+            if (answers.length === 0) {
+                container.innerHTML = `
+                    <div class="answer-card">
+                        <div class="answer-text" style="text-align: center; color: var(--gray);">
+                            📝 هیچ پاسخی در سیستم ثبت نشده است.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // گروه‌بندی پاسخ‌ها بر اساس سوال
+            const answersByQuestion = {};
+            answers.forEach(answer => {
+                const questionId = answer.question.id;
+                if (!answersByQuestion[questionId]) {
+                    answersByQuestion[questionId] = {
+                        question: answer.question,
+                        answers: []
+                    };
+                }
+                answersByQuestion[questionId].answers.push(answer);
+            });
+
+            // نمایش پاسخ‌ها گروه‌بندی شده
+            Object.values(answersByQuestion).forEach(group => {
+                const questionSection = document.createElement('div');
+                questionSection.className = 'question-card';
+                questionSection.style.marginBottom = '30px';
+                
+                questionSection.innerHTML = `
+                    <div class="question-text" style="font-weight: 500; margin-bottom: 15px;">
+                        ${escapeHtml(group.question.question_text)}
+                    </div>
+                    ${group.question.category ? `
+                        <div class="badge" style="background: ${group.question.category.color}; margin-bottom: 15px;">
+                            ${group.question.category.name}
+                        </div>
+                    ` : ''}
+                    <div style="color: var(--gray); font-size: 0.9rem; margin-bottom: 15px;">
+                        📊 ${group.answers.length} پاسخ
+                    </div>
+                `;
+
+                group.answers.forEach(answer => {
+                    const answerElement = document.createElement('div');
+                    answerElement.className = 'answer-card';
+                    answerElement.style.marginBottom = '10px';
+                    answerElement.innerHTML = `
+                        <div class="answer-header">
+                            <span class="answer-user">👤 ${escapeHtml(answer.author_name)}</span>
+                            <span class="answer-time">🕒 ${answer.time_since}</span>
+                        </div>
+                        <div class="answer-text">${escapeHtml(answer.answer_text)}</div>
+                        <div class="answer-actions">
+                            <button class="like-btn" onclick="likeAnswer(${answer.id})">
+                                ❤ ${answer.likes}
+                            </button>
+                            <button class="share-btn" onclick="shareAnswer(${answer.id})">
+                                🔗 اشتراک‌گذاری
+                            </button>
+                        </div>
+                    `;
+                    questionSection.appendChild(answerElement);
+                });
+
+                container.appendChild(questionSection);
+            });
+        }
+
+        // تابع escapeHtml
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // راه‌اندازی اولیه
+        document.addEventListener('DOMContentLoaded', function() {
+            // تنظیم ناوبری
+            updateNavigation('home');
+        });
+
+        // توابع global
+        window.showView = showView;
+        window.loadAllAnswers = loadAllAnswers;
+    </script>
 </body>
 </html>

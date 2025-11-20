@@ -6,9 +6,12 @@
     <title>DeepSoal - پرسش روز</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'core/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
     <div class="container">
+        <!-- هدر زیبا -->
         <header>
             <h1>DeepSoal</h1>
             <p class="tagline">هر روز یک پرسش جدید. ذهن‌تان را به چالش بکشید.</p>
@@ -20,17 +23,66 @@
                 <!-- توسط جاوااسکریپت پر می‌شود -->
             </div>
 
+            <!-- فرم‌های ثبت‌نام و لاگین -->
+            <div id="auth-forms" style="display: none;">
+                <!-- فرم لاگین -->
+                <form id="login-form" class="auth-form">
+                    <h3 style="text-align: center; margin-bottom: 20px; color: var(--primary);">ورود به حساب کاربری</h3>
+                    <div class="form-group">
+                        <label for="login-username">نام کاربری یا ایمیل</label>
+                        <input type="text" id="login-username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">رمز عبور</label>
+                        <input type="password" id="login-password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">ورود</button>
+                    <div style="text-align: center; margin-top: 16px;">
+                        <button type="button" class="btn btn-secondary" onclick="toggleAuthForms(false)">حساب کاربری ندارید؟ ثبت‌نام</button>
+                    </div>
+                </form>
+
+                <!-- فرم ثبت‌نام -->
+                <form id="register-form" class="auth-form">
+                    <h3 style="text-align: center; margin-bottom: 20px; color: var(--primary);">ایجاد حساب کاربری</h3>
+                    <div class="form-group">
+                        <label for="register-username">نام کاربری</label>
+                        <input type="text" id="register-username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">ایمیل</label>
+                        <input type="email" id="register-email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password1">رمز عبور</label>
+                        <input type="password" id="register-password1" name="password1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password2">تکرار رمز عبور</label>
+                        <input type="password" id="register-password2" name="password2" required>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">ثبت‌نام</button>
+                    <div style="text-align: center; margin-top: 16px;">
+                        <button type="button" class="btn btn-secondary" onclick="toggleAuthForms(true)">قبلاً ثبت‌نام کرده‌اید؟ ورود</button>
+                    </div>
+                </form>
+            </div>
+
             <!-- سوال فعال -->
             <section id="question-container">
-                <p>در حال بارگذاری سوال...</p>
+                <div style="text-align: center; padding: 40px; color: var(--gray);">
+                    <div style="display: inline-block; animation: pulse 1.5s infinite;">⏳</div>
+                    <div>در حال بارگذاری سوال...</div>
+                </div>
             </section>
 
             <!-- فرم ارسال پاسخ -->
             <form id="answer-form" class="answer-form" style="display: none;">
+                <h3 style="margin-bottom: 16px; color: var(--primary);">پاسخ شما</h3>
                 <div class="form-group">
                     <textarea 
                         id="answer-text" 
-                        placeholder="پاسخ خود را اینجا بنویسید..." 
+                        placeholder="نظرات و پاسخ خود را اینجا بنویسید..." 
                         required
                     ></textarea>
                 </div>
@@ -39,12 +91,24 @@
 
             <!-- لیست پاسخ‌ها -->
             <section class="answers-list">
-                <h2>پاسخ‌ها</h2>
+                <h3 style="margin-bottom: 16px; color: var(--primary);">پاسخ‌ها</h3>
                 <div id="answers-container">
-                    <p>در حال بارگذاری پاسخ‌ها...</p>
+                    <div style="text-align: center; padding: 20px; color: var(--gray);">
+                        <div style="display: inline-block; animation: pulse 1.5s infinite;">⏳</div>
+                        <div>در حال بارگذاری پاسخ‌ها...</div>
+                    </div>
                 </div>
             </section>
         </main>
+
+        <!-- فوتر زیبا -->
+        <footer class="footer">
+            <div>ساخته شده با ❤️</div>
+            <div class="creator">امیرمهدی عزیزی</div>
+            <div style="margin-top: 8px; font-size: 0.75rem; opacity: 0.7;">
+                DeepSoal - پلتفرم پرسش و پاسخ روزانه
+            </div>
+        </footer>
     </div>
 
     <script src="{% static 'core/script.js' %}"></script>

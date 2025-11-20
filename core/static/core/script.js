@@ -333,6 +333,7 @@ function renderUserProfile(profile, isMyProfile = false) {
 }
 
 // سیستم ثبت‌نام و لاگین
+// سیستم ثبت‌نام - نسخه اصلاح شده
 async function handleRegister(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -344,19 +345,23 @@ async function handleRegister(event) {
     submitBtn.textContent = 'در حال ثبت‌نام...';
 
     try {
+        // استفاده از FormData به جای JSON
         const data = {
             username: formData.get('username'),
             email: formData.get('email'),
-            password: formData.get('password1')
+            password1: formData.get('password1'),
+            password2: formData.get('password2')
         };
 
-        // اعتبارسنجی
-        if (formData.get('password1') !== formData.get('password2')) {
+        console.log('Register data:', data); // برای دیباگ
+
+        // اعتبارسنجی سمت کلاینت
+        if (data.password1 !== data.password2) {
             showNotification('رمز عبور و تکرار آن مطابقت ندارند', 'error');
             return;
         }
 
-        if (data.password.length < 6) {
+        if (data.password1.length < 6) {
             showNotification('رمز عبور باید حداقل ۶ کاراکتر باشد', 'error');
             return;
         }
@@ -371,6 +376,7 @@ async function handleRegister(event) {
         });
 
         const result = await response.json();
+        console.log('Register response:', result); // برای دیباگ
 
         if (response.ok && result.success) {
             showNotification('✅ ثبت‌نام موفقیت‌آمیز! خوش آمدید.', 'success');
@@ -394,6 +400,7 @@ async function handleRegister(event) {
     }
 }
 
+// سیستم لاگین - نسخه اصلاح شده  
 async function handleLogin(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -410,6 +417,8 @@ async function handleLogin(event) {
             password: formData.get('password')
         };
 
+        console.log('Login data:', data); // برای دیباگ
+
         const response = await fetch(`${API_BASE}/api/auth/login/`, {
             method: 'POST',
             headers: {
@@ -420,6 +429,7 @@ async function handleLogin(event) {
         });
 
         const result = await response.json();
+        console.log('Login response:', result); // برای دیباگ
 
         if (response.ok && result.success) {
             showNotification('✅ ورود موفقیت‌آمیز! خوش آمدید.', 'success');
@@ -441,8 +451,7 @@ async function handleLogin(event) {
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
     }
-}
-
+            }
 async function handleLogout() {
     try {
         showNotification('در حال خروج...', 'info');

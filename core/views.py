@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from django.db.models import Count
+from django.utils import timezone
 from django.shortcuts import render
 from .models import Question, Answer, Category
 from .serializers import QuestionSerializer, AnswerSerializer, CategorySerializer, StatsSerializer
@@ -15,7 +16,10 @@ class ActiveQuestionView(generics.RetrieveAPIView):
     
     def get_object(self):
         try:
-            return Question.objects.get(is_active=True)
+            question = Question.objects.get(is_active=True)
+            # محاسبه تعداد پاسخ‌ها
+            question.total_answers = question.answer_set.count()
+            return question
         except Question.DoesNotExist:
             return None
 
@@ -26,15 +30,19 @@ class AnswerListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         active_question = Question.objects.filter(is_active=True).first()
         if active_question:
-            return Answer.objects.filter(question=active_question)
+            return Answer.objects.filter(question=active_question).order_by('-created_at')
         return Answer.objects.none()
 
     def perform_create(self, serializer):
         active_question = Question.objects.filter(is_active=True).first()
         if active_question:
-            # استفاده از نام نویسنده از درخواست
             author_name = self.request.data.get('author_name', 'ناشناس')
+            if not author_name.strip():
+                author_name = 'ناشناس'
             serializer.save(question=active_question, author_name=author_name)
+        else:
+            from rest_framework import serializers
+            raise serializers.ValidationError("هیچ سوال فعالی وجود ندارد")
 
 class AnswerLikeView(APIView):
     permission_classes = [AllowAny]
@@ -64,14 +72,7 @@ class AnswerSearchView(generics.ListAPIView):
     search_fields = ['answer_text', 'author_name', 'question__question_text']
 
     def get_queryset(self):
-        queryset = Answer.objects.all()
-        
-        # فیلتر بر اساس سوال
-        question_id = self.request.GET.get('question_id')
-        if question_id:
-            queryset = queryset.filter(question_id=question_id)
-            
-        return queryset.order_by('-created_at')
+        return Answer.objects.all().select_related('question').order_by('-created_at')
 
 # سیستم آمار و آنالیز
 class StatsView(APIView):
@@ -108,7 +109,9 @@ class CategoryListView(generics.ListAPIView):
 class AllAnswersView(generics.ListAPIView):
     serializer_class = AnswerSerializer
     permission_classes = [AllowAny]
-    queryset = Answer.objects.all().order_by('-created_at')
+    
+    def get_queryset(self):
+        return Answer.objects.all().select_related('question').order_by('-created_at')
 
 # صفحه اصلی
 def index(request):

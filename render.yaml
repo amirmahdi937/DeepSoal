@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     branch: main
-    buildCommand: "./build.sh"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
     startCommand: "gunicorn deepsoal_backend.wsgi:application"
     envVars:
       - key: DEBUG

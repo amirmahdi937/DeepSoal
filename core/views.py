@@ -9,7 +9,7 @@ from django.shortcuts import render
 from .models import Question, Answer, UserProfile
 from .serializers import QuestionSerializer, AnswerSerializer, UserSerializer
 
-# Viewهای قبلی (همان‌ها را نگه دار)
+# Viewهای اصلی
 class ActiveQuestionView(generics.RetrieveAPIView):
     serializer_class = QuestionSerializer
     def get_object(self):
@@ -47,39 +47,102 @@ class AnswerLikeView(generics.UpdateAPIView):
             answer.likes.add(user)
         return Response({'status': 'liked updated', 'total_likes': answer.total_likes()})
 
-# Viewهای جدید برای ثبت‌نام
+# 🔥 سیستم ثبت‌نام جدید و ساده‌تر
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_view(request):
-    from django.contrib.auth.forms import UserCreationForm
-    form = UserCreationForm(request.data)
-    if form.is_valid():
-        user = form.save()
+    try:
+        username = request.data.get('username')
+        email = request.data.get('email')
+        password = request.data.get('password1')
+        password2 = request.data.get('password2')
+        
+        # اعتبارسنجی
+        if not username or not email or not password:
+            return Response({'error': 'تمامی فیلدها الزامی هستند'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if password != password2:
+            return Response({'error': 'رمز عبور و تکرار آن مطابقت ندارند'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if User.objects.filter(username=username).exists():
+            return Response({'error': 'نام کاربری already exists'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if User.objects.filter(email=email).exists():
+            return Response({'error': 'ایمیل already exists'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # ایجاد کاربر
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+        
+        # ایجاد پروفایل
         UserProfile.objects.create(user=user)
-        return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
-    return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # لاگین خودکار بعد از ثبت‌نام
+        login(request, user)
+        
+        return Response({
+            'message': 'ثبت‌نام موفقیت‌آمیز بود!',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        return Response({'error': 'خطا در ثبت‌نام'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    user = authenticate(username=username, password=password)
-    if user:
-        login(request, user)
-        return Response({'message': 'Login successful', 'user': UserSerializer(user).data})
-    return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    try:
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        if not username or not password:
+            return Response({'error': 'نام کاربری و رمز عبور الزامی هستند'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = authenticate(username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            return Response({
+                'message': 'ورود موفقیت‌آمیز بود!',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email
+                }
+            })
+        else:
+            return Response({'error': 'نام کاربری یا رمز عبور اشتباه است'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+    except Exception as e:
+        return Response({'error': 'خطا در ورود'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 def logout_view(request):
-    logout(request)
-    return Response({'message': 'Logout successful'})
+    try:
+        logout(request)
+        return Response({'message': 'خروج موفقیت‌آمیز بود'})
+    except Exception as e:
+        return Response({'error': 'خطا در خروج'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 def current_user_view(request):
-    if request.user.is_authenticated:
-        return Response(UserSerializer(request.user).data)
-    return Response({'detail': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+    try:
+        if request.user.is_authenticated:
+            return Response({
+                'id': request.user.id,
+                'username': request.user.username,
+                'email': request.user.email
+            })
+        return Response({'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception as e:
+        return Response({'error': 'خطا در دریافت اطلاعات کاربر'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def index(request):
     return render(request, 'core/index.html')

@@ -134,15 +134,15 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
-    "https://deepsoal.onrender.com/"
-    "https://amirmahdi937.github.io/DeepSoal/"
+    "https://deepsoal.onrender.com"
+    "https://amirmahdi937.github.io/DeepSoal"
 ]
 
 # تنظیمات Deployment
 import os
 if 'RENDER' in os.environ:
     DEBUG = False
-    ALLOWED_HOSTS = ['https://deepsoal.onrender.com/']
+    ALLOWED_HOSTS = ['https://deepsoal.onrender.com']
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 else:
     DEBUG = True

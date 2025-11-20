@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: deepsoal
+    env: python
+    plan: free
+    branch: main
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn deepsoal_backend.wsgi:application"
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4

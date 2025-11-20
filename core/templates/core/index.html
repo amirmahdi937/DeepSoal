@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSoal - پرسش روز</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'core/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DeepSoal</h1>
+            <p class="tagline">هر روز یک پرسش جدید. ذهن‌تان را به چالش بکشید.</p>
+        </header>
+
+        <main>
+            <!-- وضعیت احراز هویت -->
+            <div id="auth-status" class="auth-status">
+                <!-- توسط جاوااسکریپت پر می‌شود -->
+            </div>
+
+            <!-- سوال فعال -->
+            <section id="question-container">
+                <p>در حال بارگذاری سوال...</p>
+            </section>
+
+            <!-- فرم ارسال پاسخ -->
+            <form id="answer-form" class="answer-form" style="display: none;">
+                <div class="form-group">
+                    <textarea 
+                        id="answer-text" 
+                        placeholder="پاسخ خود را اینجا بنویسید..." 
+                        required
+                    ></textarea>
+                </div>
+                <button type="submit" class="btn">ارسال پاسخ</button>
+            </form>
+
+            <!-- لیست پاسخ‌ها -->
+            <section class="answers-list">
+                <h2>پاسخ‌ها</h2>
+                <div id="answers-container">
+                    <p>در حال بارگذاری پاسخ‌ها...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{% static 'core/script.js' %}"></script>
+</body>
+</html>

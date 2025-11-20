@@ -38,7 +38,7 @@ async function loadActiveQuestion() {
             } else {
                 elements.questionContainer.innerHTML = `
                     <div class="question-card">
-                        <div class="question-text">در حال حاضر سوال فعالی وجود ندارد.</div>
+                        <div class="question-text">📝 در حال حاضر سوال فعالی وجود ندارد. لطفاً بعداً مراجعه کنید.</div>
                     </div>
                 `;
             }
@@ -66,7 +66,7 @@ async function loadAnswers() {
                 elements.answersContainer.innerHTML = `
                     <div class="answer-card">
                         <div class="answer-text" style="text-align: center; color: var(--gray);">
-                            هنوز پاسخی ثبت نشده است. اولین نفر باشید!
+                            🎯 هنوز پاسخی ثبت نشده است. اولین نفر باشید که به این سوال پاسخ می‌دهید!
                         </div>
                     </div>
                 `;
@@ -78,8 +78,8 @@ async function loadAnswers() {
                 answerElement.className = 'answer-card';
                 answerElement.innerHTML = `
                     <div class="answer-header">
-                        <span class="answer-user">${escapeHtml(answer.user.username)}</span>
-                        <span class="answer-time">${new Date(answer.created_at).toLocaleString('fa-IR')}</span>
+                        <span class="answer-user">👤 ${escapeHtml(answer.user.username)}</span>
+                        <span class="answer-time">🕒 ${new Date(answer.created_at).toLocaleString('fa-IR')}</span>
                     </div>
                     <div class="answer-text">${escapeHtml(answer.answer_text)}</div>
                     <div class="answer-actions">
@@ -103,46 +103,7 @@ async function loadAnswers() {
     }
 }
 
-// سیستم ثبت‌نام و لاگین - نسخه ساده و کارآمد
-async function handleLogin(event) {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'در حال ورود...';
-    showNotification('در حال ورود...', 'info');
-
-    try {
-        // استفاده از سیستم ساده Django auth
-        const response = await fetch(`${API_BASE}/accounts/login/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken()
-            },
-            body: formData
-        });
-
-        if (response.ok) {
-            showNotification('ورود موفقیت‌آمیز بود!', 'success');
-            // رفرش صفحه برای اعمال تغییرات
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        } else {
-            showNotification('نام کاربری یا رمز عبور اشتباه است', 'error');
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        showNotification('خطا در ارتباط با سرور', 'error');
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-    }
-}
-
+// سیستم ثبت‌نام و لاگین
 async function handleRegister(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -152,26 +113,47 @@ async function handleRegister(event) {
     
     submitBtn.disabled = true;
     submitBtn.textContent = 'در حال ثبت‌نام...';
-    showNotification('در حال ثبت‌نام...', 'info');
 
     try {
-        // استفاده از سیستم ساده Django auth
-        const response = await fetch(`${API_BASE}/accounts/signup/`, {
+        const data = {
+            username: formData.get('username'),
+            email: formData.get('email'),
+            password: formData.get('password1')
+        };
+
+        // اعتبارسنجی
+        if (data.password1 !== data.password2) {
+            showNotification('رمز عبور و تکرار آن مطابقت ندارند', 'error');
+            return;
+        }
+
+        if (data.password.length < 6) {
+            showNotification('رمز عبور باید حداقل ۶ کاراکتر باشد', 'error');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/auth/register/`, {
             method: 'POST',
             headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken()
             },
-            body: formData
+            body: JSON.stringify(data)
         });
 
-        if (response.ok) {
-            showNotification('ثبت‌نام موفقیت‌آمیز!', 'success');
-            // رفرش صفحه برای اعمال تغییرات
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            showNotification('✅ ثبت‌نام موفقیت‌آمیز! خوش آمدید.', 'success');
+            appState.currentUser = result.user;
+            showAuthenticatedState(result.user);
+            hideAuthForms();
+            // رفرش محتوا
             setTimeout(() => {
-                window.location.reload();
+                loadAnswers();
             }, 1000);
         } else {
-            showNotification('خطا در ثبت‌نام - از نام کاربری و ایمیل دیگر استفاده کنید', 'error');
+            showNotification(result.error || 'خطا در ثبت‌نام', 'error');
         }
     } catch (error) {
         console.error('Register error:', error);
@@ -182,23 +164,74 @@ async function handleRegister(event) {
     }
 }
 
-async function handleLogout() {
-    showNotification('در حال خروج...', 'info');
+async function handleLogin(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
     
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'در حال ورود...';
+
     try {
-        const response = await fetch(`${API_BASE}/accounts/logout/`, {
+        const data = {
+            username: formData.get('username'),
+            password: formData.get('password')
+        };
+
+        const response = await fetch(`${API_BASE}/api/auth/login/`, {
             method: 'POST',
             headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            showNotification('✅ ورود موفقیت‌آمیز! خوش آمدید.', 'success');
+            appState.currentUser = result.user;
+            showAuthenticatedState(result.user);
+            hideAuthForms();
+            // رفرش محتوا
+            setTimeout(() => {
+                loadAnswers();
+            }, 1000);
+        } else {
+            showNotification(result.error || 'خطا در ورود', 'error');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        showNotification('خطا در ارتباط با سرور', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
+}
+
+async function handleLogout() {
+    try {
+        showNotification('در حال خروج...', 'info');
+        
+        const response = await fetch(`${API_BASE}/api/auth/logout/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken()
             }
         });
 
         if (response.ok) {
-            showNotification('خروج موفقیت‌آمیز بود', 'success');
-            // رفرش صفحه
+            showNotification('👋 با موفقیت خارج شدید', 'success');
+            appState.currentUser = null;
+            showUnauthenticatedState();
+            // رفرش محتوا
             setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+                loadAnswers();
+            }, 500);
         }
     } catch (error) {
         console.error('Logout error:', error);
@@ -214,9 +247,13 @@ async function checkAuthStatus() {
         });
 
         if (response.ok) {
-            const user = await response.json();
-            appState.currentUser = user;
-            showAuthenticatedState(user);
+            const result = await response.json();
+            if (result.authenticated) {
+                appState.currentUser = result.user;
+                showAuthenticatedState(result.user);
+            } else {
+                showUnauthenticatedState();
+            }
         } else {
             showUnauthenticatedState();
         }
@@ -229,9 +266,10 @@ async function checkAuthStatus() {
 function showAuthenticatedState(user) {
     elements.authStatus.innerHTML = `
         <div style="text-align: center;">
-            <p>👋 سلام <strong>${escapeHtml(user.username)}</strong>! خوش آمدید</p>
+            <p>🎉 سلام <strong style="color: var(--primary);">${escapeHtml(user.username)}</strong>! خوش آمدید</p>
+            <p style="font-size: 0.8rem; color: var(--gray); margin: 5px 0 15px 0;">حالا می‌تونی به سوال پاسخ بدی و پست‌ها رو لایک کنی</p>
             <div class="auth-buttons">
-                <button onclick="handleLogout()" class="btn btn-secondary">خروج</button>
+                <button onclick="handleLogout()" class="btn btn-secondary">🚪 خروج</button>
             </div>
         </div>
     `;
@@ -239,18 +277,15 @@ function showAuthenticatedState(user) {
     if (elements.answerForm) {
         elements.answerForm.style.display = 'block';
     }
-    if (elements.authForms) {
-        elements.authForms.style.display = 'none';
-    }
 }
 
 function showUnauthenticatedState() {
     elements.authStatus.innerHTML = `
         <div style="text-align: center;">
-            <p>برای ارسال پاسخ باید وارد شوید</p>
+            <p>🔐 برای پاسخ دادن و لایک کردن باید وارد شوید</p>
             <div class="auth-buttons">
-                <button onclick="showAuthForms('login')" class="btn">ورود</button>
-                <button onclick="showAuthForms('register')" class="btn btn-secondary">ثبت‌نام</button>
+                <button onclick="showAuthForms('login')" class="btn">🔑 ورود</button>
+                <button onclick="showAuthForms('register')" class="btn btn-secondary">📝 ثبت‌نام</button>
             </div>
         </div>
     `;
@@ -286,7 +321,13 @@ async function submitAnswer(event) {
     
     const answerText = elements.answerText.value.trim();
     if (!answerText) {
-        showNotification('لطفا پاسخ خود را وارد کنید', 'error');
+        showNotification('📝 لطفا پاسخ خود را وارد کنید', 'error');
+        return;
+    }
+
+    if (!appState.currentUser) {
+        showNotification('🔐 برای ارسال پاسخ باید وارد شوید', 'error');
+        showUnauthenticatedState();
         return;
     }
 
@@ -294,7 +335,7 @@ async function submitAnswer(event) {
     const originalText = submitBtn.textContent;
     
     submitBtn.disabled = true;
-    submitBtn.textContent = 'در حال ارسال...';
+    submitBtn.textContent = '📤 در حال ارسال...';
 
     try {
         const response = await fetch(`${API_BASE}/api/answers/`, {
@@ -308,17 +349,21 @@ async function submitAnswer(event) {
 
         if (response.ok) {
             elements.answerText.value = '';
-            showNotification('پاسخ شما با موفقیت ثبت شد!', 'success');
-            loadAnswers();
+            showNotification('✅ پاسخ شما با موفقیت ثبت شد!', 'success');
+            // رفرش لیست پاسخ‌ها
+            setTimeout(() => {
+                loadAnswers();
+            }, 500);
         } else if (response.status === 401) {
-            showNotification('برای ارسال پاسخ باید وارد شوید', 'error');
-            showUnauthenticatedState();
+            showNotification('🔐 لطفا دوباره وارد شوید', 'error');
+            checkAuthStatus();
         } else {
-            showNotification('خطا در ارسال پاسخ', 'error');
+            const error = await response.json();
+            showNotification(error.detail || 'خطا در ارسال پاسخ', 'error');
         }
     } catch (error) {
         console.error('Error submitting answer:', error);
-        showNotification('خطا در ارتباط با سرور', 'error');
+        showNotification('📡 خطا در ارتباط با سرور', 'error');
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
@@ -328,7 +373,7 @@ async function submitAnswer(event) {
 // لایک کردن پاسخ
 async function likeAnswer(answerId) {
     if (!appState.currentUser) {
-        showNotification('برای لایک کردن باید وارد شوید', 'error');
+        showNotification('🔐 برای لایک کردن باید وارد شوید', 'error');
         showUnauthenticatedState();
         return;
     }
@@ -343,14 +388,15 @@ async function likeAnswer(answerId) {
         });
 
         if (response.ok) {
+            // رفرش لیست پاسخ‌ها
             loadAnswers();
         } else if (response.status === 401) {
-            showNotification('لطفا دوباره وارد شوید', 'error');
+            showNotification('🔐 لطفا دوباره وارد شوید', 'error');
             checkAuthStatus();
         }
     } catch (error) {
         console.error('Error liking answer:', error);
-        showNotification('خطا در ارتباط با سرور', 'error');
+        showNotification('📡 خطا در ارتباط با سرور', 'error');
     }
 }
 
@@ -359,20 +405,17 @@ function shareAnswer(answerId) {
     const shareUrl = `${window.location.origin}/#answer-${answerId}`;
     
     if (navigator.share) {
-        // استفاده از Web Share API در موبایل
         navigator.share({
             title: 'پاسخ در DeepSoal',
             text: 'این پاسخ رو در DeepSoal ببینید',
             url: shareUrl
         });
     } else if (navigator.clipboard) {
-        // کپی به کلیپ‌بورد
         navigator.clipboard.writeText(shareUrl).then(() => {
-            showNotification('لینک پاسخ در کلیپ‌بورد کپی شد!', 'success');
+            showNotification('🔗 لینک پاسخ در کلیپ‌بورد کپی شد!', 'success');
         });
     } else {
-        // Fallback برای مرورگرهای قدیمی
-        prompt('لینک پاسخ را کپی کنید:', shareUrl);
+        prompt('📋 لینک پاسخ را کپی کنید:', shareUrl);
     }
 }
 
@@ -405,7 +448,6 @@ function showError(container, message) {
 }
 
 function showNotification(message, type = 'info') {
-    // ایجاد نوتیفیکیشن زیبا
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -427,10 +469,8 @@ function showNotification(message, type = 'info') {
     notification.textContent = message;
     document.body.appendChild(notification);
     
-    // انیمیشن نمایش
     setTimeout(() => notification.style.transform = 'translateX(0)', 100);
     
-    // حذف خودکار
     setTimeout(() => {
         notification.style.transform = 'translateX(400px)';
         setTimeout(() => {
@@ -481,38 +521,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (elements.authForms) {
         elements.authForms.style.display = 'none';
     }
-    
-    // اضافه کردن دکمه بستن به فرم‌ها
-    const forms = [elements.loginForm, elements.registerForm];
-    forms.forEach(form => {
-        if (form) {
-            const closeBtn = document.createElement('button');
-            closeBtn.type = 'button';
-            closeBtn.textContent = '×';
-            closeBtn.style.cssText = `
-                position: absolute;
-                top: 10px;
-                left: 10px;
-                background: none;
-                border: none;
-                color: var(--gray);
-                font-size: 1.5rem;
-                cursor: pointer;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-            `;
-            closeBtn.onclick = hideAuthForms;
-            form.style.position = 'relative';
-            form.appendChild(closeBtn);
-        }
-    });
 });
 
-// توابع global برای استفاده در HTML
+// توابع global
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
 window.handleLogout = handleLogout;
@@ -520,4 +531,3 @@ window.likeAnswer = likeAnswer;
 window.shareAnswer = shareAnswer;
 window.showAuthForms = showAuthForms;
 window.hideAuthForms = hideAuthForms;
-window.toggleAuthForms = showAuthForms; // برای سازگاری با کد قبلی

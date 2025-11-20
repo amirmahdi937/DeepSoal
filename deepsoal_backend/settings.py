@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'core',
     'rest_framework',
     'corsheaders',
@@ -166,13 +167,20 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.backends.EmailBackend',
 ]
 
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.backends.EmailBackend',
+]
+
 # تنظیمات allauth
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # تأیید ایمیل اجباری
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
-# برای توسعه - در تولید باید SMTP واقعی تنظیم کنی
+# برای توسعه
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

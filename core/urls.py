@@ -26,4 +26,12 @@ urlpatterns = [
     
     # دسته‌بندی‌ها
     path('api/categories/', views.CategoryListView.as_view(), name='categories'),
+    
+    # کاربران و فعالیت‌ها
+    path('api/users/', views.UserListView.as_view(), name='users'),
+    path('api/activities/', views.UserActivityView.as_view(), name='activities'),
+    
+    # ابزارهای توسعه
+    path('api/health/', views.health_check, name='health-check'),
+    path('api/create-test-user/', views.create_test_user, name='create-test-user'),
 ]

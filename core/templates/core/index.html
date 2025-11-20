@@ -1,191 +1,85 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- متا تگ‌های سئو -->
-    <title>DeepSoal - پلتفرم پرسش و پاسخ روزانه | سوال روز</title>
-    <meta name="description" content="هر روز یک سوال جدید و جذاب در DeepSoal. به سوال روز پاسخ دهید، نظرات دیگران را ببینید و دانش خود را به اشتراک بگذارید.">
-    <meta name="keywords" content="سوال روز, پرسش و پاسخ, بحث و تبادل نظر, جامعه آنلاین, DeepSoal">
-    <meta name="author" content="امیرمهدی عزیزی">
-    
-    <!-- Open Graph -->
-    <meta property="og:title" content="DeepSoal - پرسش روز">
-    <meta property="og:description" content="هر روز یک سوال جدید و جذاب در DeepSoal">
-    <meta property="og:type" content="website">
-    <meta property="og:locale" content="fa_IR">
-    
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://deepsoal.onrender.com">
-    
-    <!-- Structured Data for SEO -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "DeepSoal",
-        "description": "پلتفرم پرسش و پاسخ روزانه",
-        "url": "https://deepsoal.onrender.com",
-        "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://deepsoal.onrender.com/api/search/?search={search_term_string}",
-            "query-input": "required name=search_term_string"
-        }
-    }
-    </script>
-
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'core/style.css' %}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💭</text></svg>">
+    <title>DeepSoal</title>
+    <style>
+        body { font-family: Tahoma; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .question { background: #f0f0f0; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .answer { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- هدر زیبا -->
-        <header role="banner">
-            <h1>DeepSoal</h1>
-            <p class="tagline">هر روز یک پرسش جدید. ذهن‌تان را به چالش بکشید.</p>
-        </header>
-
-        <main role="main">
-            <!-- نوار آمار -->
-            <section id="stats-container" aria-label="آمار سایت">
-                <div style="text-align: center; padding: 20px; color: var(--gray-light);">
-                    <div style="display: inline-block; animation: pulse 1.5s infinite; width: 20px; height: 20px; border: 2px solid var(--primary); border-top: 2px solid transparent; border-radius: 50%;"></div>
-                    <div>در حال بارگذاری آمار...</div>
-                </div>
-            </section>
-
-            <!-- ناوبری اصلی -->
-            <nav class="navigation" role="navigation" aria-label="ناوبری اصلی">
-                <button onclick="showView('home')" class="btn" aria-current="page">
-                    صفحه اصلی
-                </button>
-                <button onclick="showView('search')" class="btn btn-secondary">
-                    جستجو
-                </button>
-                <button onclick="showView('all-answers')" class="btn btn-secondary">
-                    همه پاسخ ها
-                </button>
-            </nav>
-
-            <!-- بخش اصلی - صفحه اصلی -->
-            <section id="home-view" role="region" aria-label="صفحه اصلی">
-                <!-- سوال فعال -->
-                <section id="question-container" aria-label="سوال روز">
-                    <div style="text-align: center; padding: 40px; color: var(--gray-light);">
-                        <div style="display: inline-block; animation: pulse 1.5s infinite; width: 20px; height: 20px; border: 2px solid var(--primary); border-top: 2px solid transparent; border-radius: 50%;"></div>
-                        <div>در حال بارگذاری سوال...</div>
-                    </div>
-                </section>
-
-                <!-- فرم ارسال پاسخ -->
-                <form id="answer-form" class="answer-form" aria-label="فرم ارسال پاسخ">
-                    <h2 style="margin-bottom: 20px; color: var(--primary);">پاسخ شما</h2>
-                    
-                    <div class="form-group">
-                        <label for="author-name">نام شما (اختیاری)</label>
-                        <input 
-                            type="text" 
-                            id="author-name" 
-                            placeholder="نام خود را وارد کنید (در صورت عدم وارد کردن، 'ناشناس' نمایش داده می‌شود)"
-                            aria-describedby="name-help"
-                        >
-                        <small id="name-help" style="color: var(--gray-light); font-size: 0.8rem; margin-top: 5px; display: block;">
-                            نام شما به همراه پاسخ نمایش داده می‌شود
-                        </small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="answer-text">پاسخ شما</label>
-                        <textarea 
-                            id="answer-text" 
-                            placeholder="نظرات و پاسخ خود را اینجا بنویسید..." 
-                            required
-                            aria-describedby="answer-help"
-                            minlength="5"
-                        ></textarea>
-                        <small id="answer-help" style="color: var(--gray-light); font-size: 0.8rem; margin-top: 5px; display: block;">
-                            پاسخ باید حداقل ۵ کاراکتر باشد
-                        </small>
-                    </div>
-                    
-                    <button type="submit" class="btn">
-                        ارسال پاسخ
-                    </button>
-                </form>
-
-                <!-- لیست پاسخ‌ها -->
-                <section class="answers-list" aria-label="لیست پاسخ ها">
-                    <h2 style="margin-bottom: 20px; color: var(--primary);">پاسخ ها</h2>
-                    <div id="answers-container">
-                        <div style="text-align: center; padding: 20px; color: var(--gray-light);">
-                            <div style="display: inline-block; animation: pulse 1.5s infinite; width: 20px; height: 20px; border: 2px solid var(--primary); border-top: 2px solid transparent; border-radius: 50%;"></div>
-                            <div>در حال بارگذاری پاسخ ها...</div>
-                        </div>
-                    </div>
-                </section>
-            </section>
-
-            <!-- بخش جستجو -->
-            <section id="search-view" style="display: none;" role="region" aria-label="صفحه جستجو">
-                <div class="search-panel">
-                    <div class="search-header">
-                        <h2 style="color: var(--primary); margin-bottom: 0;">جستجو در پاسخ ها</h2>
-                    </div>
-                    
-                    <div class="form-group">
-                        <input 
-                            type="text" 
-                            id="search-input" 
-                            placeholder="عبارت مورد نظر برای جستجو را وارد کنید..."
-                            style="margin-bottom: 0;"
-                            aria-label="عبارت جستجو"
-                        >
-                    </div>
-                    
-                    <button onclick="handleSearch()" class="btn" style="width: 100%; margin-top: 15px;">
-                        اجرای جستجو
-                    </button>
-                </div>
-
-                <div id="search-results" aria-live="polite" aria-atomic="true">
-                    <div style="text-align: center; padding: 40px; color: var(--gray-light);">
-                        <div>برای دیدن نتایج جستجو، عبارت مورد نظر را وارد کنید.</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- بخش همه پاسخ‌ها -->
-            <section id="all-answers-view" style="display: none;" role="region" aria-label="همه پاسخ ها">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h2 style="color: var(--primary); margin-bottom: 10px;">همه پاسخ ها</h2>
-                    <p style="color: var(--gray-light);">نمایش تمام پاسخ های ثبت شده در سیستم</p>
-                </div>
-
-                <div id="all-answers-container" aria-live="polite" aria-atomic="true">
-                    <div style="text-align: center; padding: 40px; color: var(--gray-light);">
-                        <div style="display: inline-block; animation: pulse 1.5s infinite; width: 20px; height: 20px; border: 2px solid var(--primary); border-top: 2px solid transparent; border-radius: 50%;"></div>
-                        <div>در حال بارگذاری همه پاسخ ها...</div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- فوتر زیبا -->
-        <footer class="footer" role="contentinfo">
-            <div>ساخته شده با افتخار</div>
-            <div class="creator">امیرمهدی عزیزی</div>
-            <div style="margin-top: 8px; font-size: 0.75rem; opacity: 0.7;">
-                DeepSoal - پلتفرم پرسش و پاسخ روزانه
-            </div>
-        </footer>
+    <h1>DeepSoal - سوال روز</h1>
+    
+    <div id="question" class="question">
+        در حال بارگذاری سوال...
     </div>
 
-    <script src="{% static 'core/script.js' %}"></script>
+    <div>
+        <h3>پاسخ شما:</h3>
+        <input type="text" id="author" placeholder="نام شما (اختیاری)">
+        <textarea id="answer-text" placeholder="پاسخ خود را بنویسید..."></textarea>
+        <button onclick="submitAnswer()">ارسال پاسخ</button>
+    </div>
+
+    <div id="answers">
+        <h3>پاسخ‌ها:</h3>
+        در حال بارگذاری...
+    </div>
+
+    <script>
+        async function loadQuestion() {
+            const response = await fetch('/api/question/');
+            const data = await response.json();
+            document.getElementById('question').innerHTML = data.text || 'سوالی یافت نشد';
+        }
+
+        async function loadAnswers() {
+            const response = await fetch('/api/answers/');
+            const answers = await response.json();
+            const container = document.getElementById('answers');
+            container.innerHTML = '<h3>پاسخ‌ها:</h3>';
+            
+            answers.forEach(answer => {
+                const div = document.createElement('div');
+                div.className = 'answer';
+                div.innerHTML = `
+                    <strong>${answer.author}</strong> - ${answer.created_at}
+                    <p>${answer.text}</p>
+                    <button onclick="likeAnswer(${answer.id})">لایک (${answer.likes})</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function submitAnswer() {
+            const author = document.getElementById('author').value || 'ناشناس';
+            const text = document.getElementById('answer-text').value;
+            
+            const formData = new FormData();
+            formData.append('author', author);
+            formData.append('text', text);
+            
+            await fetch('/api/answers/add/', {
+                method: 'POST',
+                body: formData
+            });
+            
+            document.getElementById('answer-text').value = '';
+            loadAnswers();
+        }
+
+        async function likeAnswer(answerId) {
+            await fetch(`/api/answers/${answerId}/like/`);
+            loadAnswers();
+        }
+
+        // شروع
+        loadQuestion();
+        loadAnswers();
+        setInterval(loadAnswers, 5000); // آپدیت هر ۵ ثانیه
+    </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const API_BASE = '';
+const API_BASE = 'https://deepsoal.onrender.com';
 
 // المنت‌های اصلی DOM
 const elements = {
@@ -141,23 +141,28 @@ function getCSRFToken() {
 }
 
 function checkAuthStatus() {
-    // این یک چک ساده است. در عمل باید از API استفاده کنی.
-    fetch(`${API_BASE}/api/answers/`)
-        .then(response => {
-            if (response.status === 401) {
-                elements.authStatus.innerHTML = `
-                    <p>برای ارسال پاسخ باید وارد شوید.</p>
-                    <a href="/admin/login/?next=/" class="login-btn">ورود / ثبت‌نام</a>
-                `;
-                elements.answerForm.style.display = 'none';
-            } else {
-                elements.authStatus.innerHTML = `
-                    <p>شما وارد شده‌اید. می‌توانید پاسخ دهید.</p>
-                    <a href="/admin/logout/?next=/" class="logout-btn">خروج</a>
-                `;
-                elements.answerForm.style.display = 'block';
-            }
-        });
+    // یک درخواست به API بزن تا وضعیت احراز هویت رو چک کنه
+    fetch(`${API_BASE}/api/answers/`, {
+        credentials: 'include'  // این خط رو اضافه کن
+    })
+    .then(response => {
+        if (response.status === 401 || response.status === 403) {
+            elements.authStatus.innerHTML = `
+                <p>برای ارسال پاسخ باید وارد شوید.</p>
+                <a href="/admin/login/?next=/" class="login-btn">ورود / ثبت‌نام</a>
+            `;
+            elements.answerForm.style.display = 'none';
+        } else {
+            elements.authStatus.innerHTML = `
+                <p>شما وارد شده‌اید. می‌توانید پاسخ دهید.</p>
+                <a href="/admin/logout/?next=/" class="logout-btn">خروج</a>
+            `;
+            elements.answerForm.style.display = 'block';
+        }
+    })
+    .catch(error => {
+        console.error('Error checking auth status:', error);
+    });
 }
 
 // راه‌اندازی اولیه

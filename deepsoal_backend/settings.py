@@ -134,6 +134,7 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
+    "https://deepsoal.onrender.com/"
 ]
 
 # تنظیمات Deployment

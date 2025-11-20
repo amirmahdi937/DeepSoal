@@ -140,7 +140,7 @@ CORS_ALLOWED_ORIGINS = [
 import os
 if 'RENDER' in os.environ:
     DEBUG = False
-    ALLOWED_HOSTS = ['.onrender.com']
+    ALLOWED_HOSTS = ['https://deepsoal.onrender.com/']
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 else:
     DEBUG = True

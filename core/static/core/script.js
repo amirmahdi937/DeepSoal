@@ -9,9 +9,7 @@ const elements = {
     authStatus: document.getElementById('auth-status'),
     authForms: document.getElementById('auth-forms'),
     loginForm: document.getElementById('login-form'),
-    registerForm: document.getElementById('register-form'),
-    showLogin: document.getElementById('show-login'),
-    showRegister: document.getElementById('show-register')
+    registerForm: document.getElementById('register-form')
 };
 
 // وضعیت برنامه
@@ -105,82 +103,90 @@ async function loadAnswers() {
     }
 }
 
-// سیستم ثبت‌نام و لاگین
+// سیستم ثبت‌نام و لاگین - نسخه ساده و کارآمد
 async function handleLogin(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
-    const data = {
-        username: formData.get('username'),
-        password: formData.get('password')
-    };
+    
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'در حال ورود...';
+    showNotification('در حال ورود...', 'info');
 
     try {
-        const response = await fetch(`${API_BASE}/api/auth/login/`, {
+        // استفاده از سیستم ساده Django auth
+        const response = await fetch(`${API_BASE}/accounts/login/`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken()
             },
-            body: JSON.stringify(data)
+            body: formData
         });
 
         if (response.ok) {
-            const result = await response.json();
             showNotification('ورود موفقیت‌آمیز بود!', 'success');
-            checkAuthStatus();
-            toggleAuthForms(false);
+            // رفرش صفحه برای اعمال تغییرات
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } else {
-            const error = await response.json();
-            showNotification(error.detail || 'خطا در ورود', 'error');
+            showNotification('نام کاربری یا رمز عبور اشتباه است', 'error');
         }
     } catch (error) {
         console.error('Login error:', error);
         showNotification('خطا در ارتباط با سرور', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     }
 }
 
 async function handleRegister(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
-    const data = {
-        username: formData.get('username'),
-        email: formData.get('email'),
-        password1: formData.get('password1'),
-        password2: formData.get('password2')
-    };
-
-    if (data.password1 !== data.password2) {
-        showNotification('رمز عبور و تکرار آن مطابقت ندارند', 'error');
-        return;
-    }
+    
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'در حال ثبت‌نام...';
+    showNotification('در حال ثبت‌نام...', 'info');
 
     try {
-        const response = await fetch(`${API_BASE}/api/auth/register/`, {
+        // استفاده از سیستم ساده Django auth
+        const response = await fetch(`${API_BASE}/accounts/signup/`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken()
             },
-            body: JSON.stringify(data)
+            body: formData
         });
 
         if (response.ok) {
-            showNotification('ثبت‌نام موفقیت‌آمیز! لطفا ایمیل خود را تأیید کنید.', 'success');
-            toggleAuthForms(true); // برگشت به فرم لاگین
+            showNotification('ثبت‌نام موفقیت‌آمیز!', 'success');
+            // رفرش صفحه برای اعمال تغییرات
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } else {
-            const error = await response.json();
-            const errorMessage = Object.values(error).flat().join(' ') || 'خطا در ثبت‌نام';
-            showNotification(errorMessage, 'error');
+            showNotification('خطا در ثبت‌نام - از نام کاربری و ایمیل دیگر استفاده کنید', 'error');
         }
     } catch (error) {
         console.error('Register error:', error);
         showNotification('خطا در ارتباط با سرور', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     }
 }
 
 async function handleLogout() {
+    showNotification('در حال خروج...', 'info');
+    
     try {
-        const response = await fetch(`${API_BASE}/api/auth/logout/`, {
+        const response = await fetch(`${API_BASE}/accounts/logout/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCSRFToken()
@@ -189,10 +195,14 @@ async function handleLogout() {
 
         if (response.ok) {
             showNotification('خروج موفقیت‌آمیز بود', 'success');
-            checkAuthStatus();
+            // رفرش صفحه
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         }
     } catch (error) {
         console.error('Logout error:', error);
+        showNotification('خطا در خروج', 'error');
     }
 }
 
@@ -229,7 +239,9 @@ function showAuthenticatedState(user) {
     if (elements.answerForm) {
         elements.answerForm.style.display = 'block';
     }
-    toggleAuthForms(false);
+    if (elements.authForms) {
+        elements.authForms.style.display = 'none';
+    }
 }
 
 function showUnauthenticatedState() {
@@ -237,139 +249,38 @@ function showUnauthenticatedState() {
         <div style="text-align: center;">
             <p>برای ارسال پاسخ باید وارد شوید</p>
             <div class="auth-buttons">
-                <button id="show-login-btn" class="btn">ورود</button>
-                <button id="show-register-btn" class="btn btn-secondary">ثبت‌نام</button>
+                <button onclick="showAuthForms('login')" class="btn">ورود</button>
+                <button onclick="showAuthForms('register')" class="btn btn-secondary">ثبت‌نام</button>
             </div>
         </div>
     `;
-    
-    // اضافه کردن event listener برای دکمه‌های جدید
-    setTimeout(() => {
-        document.getElementById('show-login-btn').addEventListener('click', () => toggleAuthForms(true));
-        document.getElementById('show-register-btn').addEventListener('click', () => toggleAuthForms(false));
-    }, 100);
     
     if (elements.answerForm) {
         elements.answerForm.style.display = 'none';
     }
 }
 
-function toggleAuthForms(showLogin) {
+function showAuthForms(formType) {
     if (!elements.authForms) return;
     
-    if (showLogin) {
-        elements.authForms.style.display = 'block';
+    elements.authForms.style.display = 'block';
+    
+    if (formType === 'login') {
         elements.loginForm.style.display = 'block';
         elements.registerForm.style.display = 'none';
     } else {
-        elements.authForms.style.display = 'block';
         elements.loginForm.style.display = 'none';
         elements.registerForm.style.display = 'block';
     }
 }
 
-// توابع کمکی
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-function showLoading(container) {
-    container.innerHTML = `
-        <div style="text-align: center; padding: 20px; color: var(--gray);">
-            <div style="display: inline-block; animation: pulse 1.5s infinite;">⏳</div>
-            <div>در حال بارگذاری...</div>
-        </div>
-    `;
-}
-
-function showError(container, message) {
-    container.innerHTML = `
-        <div style="text-align: center; padding: 20px; color: var(--error);">
-            <div>❌ ${message}</div>
-        </div>
-    `;
-}
-
-function showNotification(message, type = 'info') {
-    // ایجاد نوتیفیکیشن زیبا
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 20px;
-        border-radius: 8px;
-        color: white;
-        z-index: 1000;
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
-        ${type === 'success' ? 'background: var(--success);' : ''}
-        ${type === 'error' ? 'background: var(--error);' : ''}
-        ${type === 'info' ? 'background: var(--primary);' : ''}
-    `;
-    
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    // انیمیشن نمایش
-    setTimeout(() => notification.style.transform = 'translateX(0)', 100);
-    
-    // حذف خودکار
-    setTimeout(() => {
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-function getCSRFToken() {
-    const name = 'csrftoken';
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-// راه‌اندازی اولیه
-document.addEventListener('DOMContentLoaded', function() {
-    // بارگذاری اولیه
-    loadActiveQuestion();
-    loadAnswers();
-    checkAuthStatus();
-    
-    // event listenerها
-    if (elements.answerForm) {
-        elements.answerForm.addEventListener('submit', submitAnswer);
-    }
-    
-    if (elements.loginForm) {
-        elements.loginForm.addEventListener('submit', handleLogin);
-    }
-    
-    if (elements.registerForm) {
-        elements.registerForm.addEventListener('submit', handleRegister);
-    }
-    
-    // مخفی کردن فرم‌های auth در ابتدا
-    toggleAuthForms(false);
+function hideAuthForms() {
     if (elements.authForms) {
         elements.authForms.style.display = 'none';
     }
-});
+}
 
-// توابع موجود قبلی (برای سازگاری)
+// ارسال پاسخ
 async function submitAnswer(event) {
     event.preventDefault();
     
@@ -414,6 +325,7 @@ async function submitAnswer(event) {
     }
 }
 
+// لایک کردن پاسخ
 async function likeAnswer(answerId) {
     if (!appState.currentUser) {
         showNotification('برای لایک کردن باید وارد شوید', 'error');
@@ -442,12 +354,170 @@ async function likeAnswer(answerId) {
     }
 }
 
+// اشتراک‌گذاری پاسخ
 function shareAnswer(answerId) {
     const shareUrl = `${window.location.origin}/#answer-${answerId}`;
-    navigator.clipboard.writeText(shareUrl).then(() => {
-        showNotification('لینک پاسخ در کلیپ‌بورد کپی شد!', 'success');
-    }).catch(() => {
+    
+    if (navigator.share) {
+        // استفاده از Web Share API در موبایل
+        navigator.share({
+            title: 'پاسخ در DeepSoal',
+            text: 'این پاسخ رو در DeepSoal ببینید',
+            url: shareUrl
+        });
+    } else if (navigator.clipboard) {
+        // کپی به کلیپ‌بورد
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showNotification('لینک پاسخ در کلیپ‌بورد کپی شد!', 'success');
+        });
+    } else {
         // Fallback برای مرورگرهای قدیمی
         prompt('لینک پاسخ را کپی کنید:', shareUrl);
-    });
+    }
 }
+
+// توابع کمکی
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function showLoading(container) {
+    container.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: var(--gray);">
+            <div style="display: inline-block; animation: pulse 1.5s infinite;">⏳</div>
+            <div>در حال بارگذاری...</div>
+        </div>
+    `;
+}
+
+function showError(container, message) {
+    container.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: var(--error);">
+            <div>❌ ${message}</div>
+        </div>
+    `;
+}
+
+function showNotification(message, type = 'info') {
+    // ایجاد نوتیفیکیشن زیبا
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        z-index: 1000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        font-size: 0.9rem;
+        max-width: 300px;
+        ${type === 'success' ? 'background: var(--success);' : ''}
+        ${type === 'error' ? 'background: var(--error);' : ''}
+        ${type === 'info' ? 'background: var(--primary);' : ''}
+    `;
+    
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // انیمیشن نمایش
+    setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+    
+    // حذف خودکار
+    setTimeout(() => {
+        notification.style.transform = 'translateX(400px)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
+function getCSRFToken() {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// راه‌اندازی اولیه
+document.addEventListener('DOMContentLoaded', function() {
+    // بارگذاری اولیه
+    loadActiveQuestion();
+    loadAnswers();
+    checkAuthStatus();
+    
+    // event listenerها
+    if (elements.answerForm) {
+        elements.answerForm.addEventListener('submit', submitAnswer);
+    }
+    
+    if (elements.loginForm) {
+        elements.loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    if (elements.registerForm) {
+        elements.registerForm.addEventListener('submit', handleRegister);
+    }
+    
+    // مخفی کردن فرم‌های auth در ابتدا
+    if (elements.authForms) {
+        elements.authForms.style.display = 'none';
+    }
+    
+    // اضافه کردن دکمه بستن به فرم‌ها
+    const forms = [elements.loginForm, elements.registerForm];
+    forms.forEach(form => {
+        if (form) {
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.textContent = '×';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                background: none;
+                border: none;
+                color: var(--gray);
+                font-size: 1.5rem;
+                cursor: pointer;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+            `;
+            closeBtn.onclick = hideAuthForms;
+            form.style.position = 'relative';
+            form.appendChild(closeBtn);
+        }
+    });
+});
+
+// توابع global برای استفاده در HTML
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.handleLogout = handleLogout;
+window.likeAnswer = likeAnswer;
+window.shareAnswer = shareAnswer;
+window.showAuthForms = showAuthForms;
+window.hideAuthForms = hideAuthForms;
+window.toggleAuthForms = showAuthForms; // برای سازگاری با کد قبلی

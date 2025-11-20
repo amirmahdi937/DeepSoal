@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'core',
     'rest_framework',
     'corsheaders',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 ]
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -156,3 +159,20 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 #    STATICFILES_DIRS = [
 #        os.path.join(BASE_DIR, 'static'),
 #]
+
+# به انتهای settings.py اضافه کن
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.backends.EmailBackend',
+]
+
+# تنظیمات allauth
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # تأیید ایمیل اجباری
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+
+# برای توسعه - در تولید باید SMTP واقعی تنظیم کنی
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
